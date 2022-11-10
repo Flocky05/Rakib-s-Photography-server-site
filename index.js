@@ -39,7 +39,19 @@ async function run() {
             console.log(req.body);
             const result = await reviewCollection.insertOne(req.body)
             res.send(result)
+        });
+        app.get('/reviews', async (req, res) => {
+            const email = req.query.email
+            const id = req.params.id;
+            let query
+            if (email)
+                query = { email: email }
+            else query = {}
+            const coursor = reviewCollection.find(query);
+            const reviews = await coursor.toArray()
+            res.send(reviews)
         })
+
     } finally {
 
     }
