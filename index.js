@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb');
 
 require('dotenv').config()
 
@@ -25,7 +25,7 @@ async function run() {
             const size = parseInt(req.query.size);
             const quary = {}
             const cursor = serviceCollection.find(quary);
-            const services = await cursor.limit(size).toArray();
+            const services = await cursor.limit(size).sort({ timestamp: -1 }).toArray();
             res.send(services);
         });
 
@@ -40,6 +40,12 @@ async function run() {
             const result = await reviewCollection.insertOne(req.body)
             res.send(result)
         });
+        app.get('/reviews/:id', async (req, res) => {
+
+            const cr = reviewCollection.find({ service_id: req.params.id })
+            const result = await cr.toArray()
+            res.send(result)
+        });
         app.get('/reviews', async (req, res) => {
             const email = req.query.email
             const id = req.params.id;
@@ -50,6 +56,16 @@ async function run() {
             const coursor = reviewCollection.find(query);
             const reviews = await coursor.toArray()
             res.send(reviews)
+        });
+
+        app.delete('/review/:id', async (req, res) => {
+            const result = await reviewCollection.deleteOne({ _id: ObjectId(req.params.id) })
+            res.send(result)
+        })
+
+        app.post('/service', async (req, res) => {
+            const result = await serviceCollection.insertOne({ timestamp: new Timestamp(), ...req.body })
+            res.send(result)
         })
 
     } finally {
